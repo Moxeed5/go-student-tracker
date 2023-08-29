@@ -2,74 +2,154 @@ package main
 
 import (
 	"fmt"
+	"time"
+	"unicode"
 )
 
 type Student struct {
 	firstName string
 	lastName string
+}
+
+type AttendenceRecord struct {
+	student Student
 	isPresent bool
+	Records []time.Weekday
 
 }
 
 type ClassRoom struct {
+	className string
 	studentList []Student
+	classAttendence []AttendenceRecord
+}
+
+type School struct {
+	classRoomList []ClassRoom
 }
 
 
 
 func main() {
-	fmt.Println("Welcome to the student tracker program")
+	fmt.Println("Welcome to the ClassRoom Manager")
 
-	var class ClassRoom
-
+	var school School 
 	for {
-	var student = takeAttendence()
+		fmt.Println("Please choose from the following: ")
+		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 to add a student to a class, and 4 to exit the program.")
+		var menuChoice int
+		fmt.Scan(&menuChoice)
 
-	class.studentList = append(class.studentList, student)
+		switch menuChoice {
+		case 1:
+			newClass := createClassRoom()
+			school.classRoomList = append(school.classRoomList, newClass)
 
-	fmt.Println("Enter y to continue taking attendence or n to exit")
-	var exit string
-	fmt.Scan(&exit)
+		case 2:
+			var roomSelection ClassRoom = selectClassRoom(school)
+			for{
+				newStu := createStudent()
+				roomSelection.studentList = append(roomSelection.studentList, newStu)
 
-	if exit == "n" || exit == "n" {
-		break
-	}
+				var addAnotherStudent string
+				fmt.Println("Enter Y to add another student and N to exit")
+				fmt.Scan(&addAnotherStudent)
+				if !validateBool(addAnotherStudent) {
+					break
+				}
 
-	}
-
-	fmt.Println("Students in class:")
-	for i, student := range class.studentList {
-		fmt.Printf("Student %d:\n", i+1)
-		fmt.Printf("First Name: %s\n", student.firstName)
-		fmt.Printf("Last Name: %s\n", student.lastName)
-		fmt.Printf("Is Present: %v\n", student.isPresent)
+			}
+		case 3: 
+			createStudent()
+		case 4:
+			break
+		}
 	}
 	
 }
 
-
-
-
-
-func takeAttendence() Student {
-	
-	var student Student
-	var tempPresentVar string
-	fmt.Println("Enter student's first name: \n")
-	fmt.Scan(&student.firstName)
-	fmt.Println("Enter student's last name: \n")
-	fmt.Scan((&student.lastName))
-	fmt.Println("Is the student present? y/n: \n")
-	fmt.Scan(&tempPresentVar)
-
-	if tempPresentVar == "y" || tempPresentVar == "Y"{
-		student.isPresent = true
-	} else {
-		student.isPresent = false
+func selectClassRoom(school School) ClassRoom {
+	fmt.Println("Select the class that you would like to add Student to")
+	for index, class := range school.classRoomList {
+		fmt.Printf("%d. %s\n", index + 1, class.className)
 	}
+	var selection int
+	fmt.Scan(&selection)
+	return school.classRoomList[selection-1]
+}
+
+func createClassRoom() ClassRoom {
+	var class ClassRoom
+	var name string
+	for {
+	fmt.Println("Enter the name for the classroom: ")
+	fmt.Scan(&name)
+	if isValidName(name) == true {
+		class.className = name
+		break
+	} else {
+		fmt.Printf("%v is not a valid name\n", name)
+	}
+}
+	return class
+}
+
+func createStudent() Student {
+	var student Student
+	var tempFirstName string
+	var tempLastName string
 	
+	for {
+	fmt.Printf("Enter first name of Student: \n")
+	fmt.Scan(&tempFirstName)
+	if isValidName(tempFirstName) {
+	student.firstName = tempFirstName
+	break
+	} else {
+		fmt.Printf("%v is not a valid name\n", tempFirstName)
+	}
+	}
+	for {
+		fmt.Printf("Enter last name of Student: \n")
+		fmt.Scan(&tempLastName)
+		if isValidName(tempLastName){
+		student.lastName = tempLastName
+		break
+		} else {
+			fmt.Printf("%v is not a valid name\n", tempLastName)
+		}
+	}
 
 	return student
 
 }
+
+func isValidName(name string) bool {
+	for _, r := range name {
+		if !unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func validateBool(inputString string) bool { 
+	var validatedInput bool
+
+	for {
+		
+		if inputString == "y" || inputString == "Y" {
+			validatedInput = true
+			break
+		} else if inputString == "n" || inputString == "N" {
+			validatedInput = false
+			break
+		} else {
+			fmt.Printf("%v is not a valid option.\n", inputString)
+			continue
+		}
+	}
+	return validatedInput
+}
+
 
