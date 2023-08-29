@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -44,23 +45,22 @@ func main() {
 		case 1:
 			newClass := createClassRoom()
 			school.classRoomList = append(school.classRoomList, newClass)
-
+			
 		case 2:
+
+
 			var roomSelection ClassRoom = selectClassRoom(school)
-			for{
+			var numOfStu int 
+
+			fmt.Println("Enter the number of students you would like to add:")
+			fmt.Scan(&numOfStu)
+
+			for i:=0; i<numOfStu; i++ {
 				newStu := createStudent()
-				roomSelection.studentList = append(roomSelection.studentList, newStu)
-
-				var addAnotherStudent string
-				fmt.Println("Enter Y to add another student and N to exit")
-				fmt.Scan(&addAnotherStudent)
-				if !validateBool(addAnotherStudent) {
-					break
-				}
-
-			}
+				roomSelection.studentList = append(roomSelection.studentList, newStu)	
+			}				
 		case 3: 
-			createStudent()
+			//createStudent()
 		case 4:
 			break
 		}
@@ -133,23 +133,15 @@ func isValidName(name string) bool {
 	return true
 }
 
-func validateBool(inputString string) bool { 
-	var validatedInput bool
-
-	for {
-		
-		if inputString == "y" || inputString == "Y" {
-			validatedInput = true
-			break
-		} else if inputString == "n" || inputString == "N" {
-			validatedInput = false
-			break
-		} else {
-			fmt.Printf("%v is not a valid option.\n", inputString)
-			continue
-		}
+func yesOrNo(inputString string) (bool, error) {
+	switch strings.ToLower(inputString) {
+	case "y", "yes":
+		return true, nil
+	case "n", "no":
+		return false, nil
+	default:
+		return false, fmt.Errorf("%v is not a valid option.", inputString)
 	}
-	return validatedInput
 }
 
 
