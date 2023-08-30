@@ -37,7 +37,7 @@ func main() {
 	var school School 
 	for {
 		fmt.Println("Please choose from the following: ")
-		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 to add a student to a class, and 4 to exit the program.")
+		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendence by class and 4 to exit the program.")
 		var menuChoice int
 		fmt.Scan(&menuChoice)
 
@@ -45,20 +45,34 @@ func main() {
 		case 1:
 			newClass := createClassRoom()
 			school.classRoomList = append(school.classRoomList, newClass)
-			
+
 		case 2:
-
-
-			var roomSelection ClassRoom = selectClassRoom(school)
-			var numOfStu int 
-
-			fmt.Println("Enter the number of students you would like to add:")
-			fmt.Scan(&numOfStu)
-
-			for i:=0; i<numOfStu; i++ {
+			roomSelection := selectClassRoom(school)
+		
+			for {
 				newStu := createStudent()
-				roomSelection.studentList = append(roomSelection.studentList, newStu)	
-			}				
+				roomSelection.studentList = append(roomSelection.studentList, newStu)
+		
+				var shouldContinue bool
+				for {
+					fmt.Println("Would you like to add another student? (Y/N)")
+					var addAnotherStudent string
+					fmt.Scan(&addAnotherStudent)
+		
+					var err error
+					shouldContinue, err = yesOrNo(addAnotherStudent)
+					if err != nil {
+						fmt.Println(err.Error())
+					} else {
+						break // break out of the inner loop
+					}
+				}
+		
+				if !shouldContinue {
+					break // break out of the outer loop
+				}
+			}
+					
 		case 3: 
 			//createStudent()
 		case 4:
@@ -67,6 +81,7 @@ func main() {
 	}
 	
 }
+
 
 func selectClassRoom(school School) ClassRoom {
 	fmt.Println("Select the class that you would like to add Student to")
