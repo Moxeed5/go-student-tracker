@@ -144,6 +144,9 @@ func (school *School) selectClassRoom() int {
 	}
 }
 
+//%d returns index value, %s is a placeholder for a string val. To explain the list in the foreach loop...
+//school contains a field that is a slice of classRooms. Selection is our index to pick a specific class from the classroom slice. ClassRoom struct has field..
+//that is a slice of students. So ultimate we are saying, iterate throught the student list for our chosen classroom.
 func (school *School) listStudentsInClass(selection int) {
 	for index, student := range school.classRoomList[selection].studentList {
 		fmt.Printf("%d. %s %s\n", index+1, student.firstName, student.lastName)
@@ -151,7 +154,7 @@ func (school *School) listStudentsInClass(selection int) {
 }
 
 
-
+//made a func for bufio for eease of use. 
 func readLine() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
