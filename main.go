@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 	"unicode"
@@ -39,7 +41,7 @@ func main() {
 		fmt.Println("Please choose from the following: ")
 		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendence by class and 4 to exit the program.")
 		var menuChoice int
-		fmt.Scan(&menuChoice)
+		fmt.Scanln(&menuChoice)
 
 		switch menuChoice {
 		case 1:
@@ -47,7 +49,7 @@ func main() {
 			school.classRoomList = append(school.classRoomList, newClass)
 
 		case 2:
-			roomSelection := selectClassRoom(school)
+			roomSelection := school.selectClassRoom()
 		
 			for {
 				newStu := createStudent()
@@ -76,38 +78,83 @@ func main() {
 		case 3: 
 			//createStudent()
 		case 4:
-			break
+			return
+
+		default: 
+			fmt.Println("Invalid choice! Please select from the available options")
 		}
 	}
 	
 }
 
+// when you write a func specifically for a struct, it's a method. Methods syntax is a bit different from a regular func. see below: 
+//the receiver type is School. This func can only be used on the data type School. Classroom is return val. Params would be in the usual place
 
-func selectClassRoom(school School) ClassRoom {
-	fmt.Println("Select the class that you would like to add Student to")
+func (school *School)selectClassRoom() *ClassRoom {
+	
 	for index, class := range school.classRoomList {
 		fmt.Printf("%d. %s\n", index + 1, class.className)
 	}
 	var selection int
-	fmt.Scan(&selection)
-	return school.classRoomList[selection-1]
+	for {
+	fmt.Println("Select the class that you would like to add Student to")
+	
+	_, err := fmt.Scan(&selection)
+	flushStdin()
+	 // scan returns the number of items successfully scanned and and error val. I can use _ if I don't care about # of items scanned
+	 if err != nil {
+		fmt.Println("Invalid input, please enter the class number to make a selection")
+		continue //invalid choice was made, continue takes us to the top of the loop which reprompts the user to select a class
+	 } else if selection <= 0 || selection > len(school.classRoomList) {
+		 fmt.Println("Invalid selection")
+		 continue
+	 } else {
+		for index, student := range school.classRoomList[selection-1].studentList{
+			 fmt.Printf("%d. %s %s\n", index+1, student.firstName, student.lastName)
+		}
+		break
+	 }
+	 
+	}
+	
+	return &school.classRoomList[selection-1]
+	
+}
+
+func flushStdin() {
+    var dummy string
+    fmt.Scanln(&dummy)
+}
+
+
+func readLine() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	return strings.TrimSpace(input), err
 }
 
 func createClassRoom() ClassRoom {
 	var class ClassRoom
-	var name string
+
 	for {
-	fmt.Println("Enter the name for the classroom: ")
-	fmt.Scan(&name)
-	if isValidName(name) == true {
-		class.className = name
-		break
-	} else {
-		fmt.Printf("%v is not a valid name\n", name)
+		fmt.Println("Enter the name for the classroom: ")
+
+		name, err := readLine()
+		if err != nil || len(name) == 0 {
+			fmt.Println("Error reading input, please try again.")
+			continue
+		}
+
+		if isValidName(name) {
+			class.className = name
+			break
+		} else {
+			fmt.Printf("%v is not a valid name\n", name)
+		}
 	}
-}
 	return class
 }
+
 
 func createStudent() Student {
 	var student Student
@@ -117,6 +164,7 @@ func createStudent() Student {
 	for {
 	fmt.Printf("Enter first name of Student: \n")
 	fmt.Scan(&tempFirstName)
+	flushStdin()
 	if isValidName(tempFirstName) {
 	student.firstName = tempFirstName
 	break
@@ -127,6 +175,7 @@ func createStudent() Student {
 	for {
 		fmt.Printf("Enter last name of Student: \n")
 		fmt.Scan(&tempLastName)
+		flushStdin()
 		if isValidName(tempLastName){
 		student.lastName = tempLastName
 		break
@@ -140,13 +189,14 @@ func createStudent() Student {
 }
 
 func isValidName(name string) bool {
-	for _, r := range name {
-		if !unicode.IsLetter(r) {
-			return false
-		}
-	}
-	return true
+    for _, r := range name {
+        if !unicode.IsLetter(r) && !unicode.IsSpace(r) && r != '\'' {
+            return false
+        }
+    }
+    return true
 }
+
 
 func yesOrNo(inputString string) (bool, error) {
 	switch strings.ToLower(inputString) {
