@@ -244,10 +244,11 @@ func (class *ClassRoom) NameClassRoom() {
 			continue
 		}
 
-		if isValidName(class.className) {
-			break
+		valid, err := isValidName(class.className)
+		if valid {
+    		break
 		} else {
-			fmt.Printf("%v is not a valid name\n", class.className)
+    		fmt.Printf("%v\n", err)
 		}
 	}
 	return 
@@ -259,10 +260,12 @@ func createStudent() Student {
 	for {
 		fmt.Println("Enter first name of Student:")
 		tempFirstName, err := readLine()
-		if err != nil || !isValidName(tempFirstName) {
-			fmt.Println("Invalid first name. Please try again.")
-			continue
+		valid, err := isValidName(tempFirstName)
+		if err != nil || !valid {
+    		fmt.Println("Invalid first name. Please try again.")
+   			continue
 		}
+
 		student.firstName = tempFirstName
 		break
 	}
@@ -270,10 +273,12 @@ func createStudent() Student {
 	for {
 		fmt.Println("Enter last name of Student:")
 		tempLastName, err := readLine()
-		if err != nil || !isValidName(tempLastName) {
-			fmt.Println("Invalid last name. Please try again.")
-			continue
+		valid, err := isValidName(tempLastName)
+		if err != nil || !valid {
+    		fmt.Println("Invalid last name. Please try again.")
+    		continue
 		}
+
 		student.lastName = tempLastName
 		break
 	}
@@ -281,21 +286,21 @@ func createStudent() Student {
 	return student
 }
 
-func isValidName(name string) bool {
+func isValidName(name string) (bool, error) {
     if len(name) == 0 {
-        return false
+        return false, fmt.Errorf("Name cannot be empty")
     }
     // First character must be a letter
     if !unicode.IsLetter(rune(name[0])) {
-        return false
+        return false, fmt.Errorf("The class name cannot start with a number")
     }
     // Iterate through the rest of the name
     for _, r := range name {
         if !unicode.IsLetter(r) && !unicode.IsNumber(r) && !unicode.IsSpace(r) && r != '\'' && r != '.' {
-            return false
+            return false, fmt.Errorf("Invalid name, avoid special characters.")
         }
     }
-    return true
+    return true, nil
 }
 
 func yesOrNo(inputString string) (bool, error) {
