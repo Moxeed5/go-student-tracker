@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -27,6 +26,13 @@ when you are working with huge amounts of data, creating a copy by passing by va
 in the moment thoughts so I'll prob need to update this...*/
 
 //declaring struct types
+
+//thoughts on design of my app
+
+/* I could make a map of student key and isPresent value. I would make a slice of maps of type Student & isPresent and the 3rd value would be day of the week
+It seems like I should put that all into the attendence record struct.
+
+*/
 type Student struct {
 	firstName string
 	lastName  string
@@ -35,7 +41,7 @@ type Student struct {
 type AttendenceRecord struct {
 	student   Student
 	isPresent bool
-	Records   []time.Weekday
+	
 }
 
 type ClassRoom struct {
@@ -48,6 +54,47 @@ type School struct {
 	classRoomList []ClassRoom
 }
 
+func (class *ClassRoom) takeAttendence() {
+	var attendance AttendenceRecord
+	for _, student := range class.studentList {
+		attendance.student = student
+		fmt.Printf("Is %v %v present? Y/N\n", student.firstName, student.lastName)
+		input, err := readLine()
+		if err != nil{
+			fmt.Println("Invalid input")
+			continue
+		} 
+		attendance.isPresent, err = yesOrNo(input)
+
+		if err != nil {
+			fmt.Println("Invalid input")
+			continue
+		}		
+		class.classAttendence = append(class.classAttendence, attendance)
+
+	}
+	
+	for _, record := range class.classAttendence {
+		if record.isPresent == true {
+			fmt.Printf("%v %v: Present\n", record.student.firstName, record.student.lastName)
+		} else {
+			fmt.Printf("%v %v: is Absent\n", record.student.firstName, record.student.lastName)
+		}
+		
+	}
+}
+
+func (class ClassRoom) viewAttendenceRecords() {
+	for _, record := range class.classAttendence {
+		if record.isPresent == true {
+			fmt.Printf("%v %v: Present\n", record.student.firstName, record.student.lastName)
+		} else {
+			fmt.Printf("%v %v: is Absent\n", record.student.firstName, record.student.lastName)
+		}
+		
+	}
+}
+
 func main() {
 	fmt.Println("Welcome to the ClassRoom Manager")
 
@@ -56,7 +103,7 @@ func main() {
 	//for loop and switch statements to manage menu items
 	for {
 		fmt.Println("Please choose from the following: ")
-		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendance by class and 4 to exit the program.")
+		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendance by class, 4 to view attendence records, and 5 to exit the program.")
 		menuChoiceStr, err := readLine()
 		if err != nil {
 			fmt.Println("Error reading input. Please try again.")
@@ -68,9 +115,16 @@ func main() {
 			fmt.Println("Please enter a valid number.")
 			continue
 		}
+
+		if menuChoice != 1 && school.classRoomList == nil {
+			fmt.Println("You must create at least one classroom before selecting other options.")
+			continue
+		}
 		switch menuChoice {
 		case 1:
-			newClass := createClassRoom()
+			// newClass := createClassRoom()
+			var newClass ClassRoom
+			newClass.NameClassRoom()
 			school.classRoomList = append(school.classRoomList, newClass)
 
 		case 2:
@@ -100,10 +154,21 @@ func main() {
 				}
 			}
 			
-
+			//why does our code in swith case 3 & 4 look like this?
+			//Explanation: selectClassRoom func returns an int that we use as the index value for our classRoom slice that we have in school
+			//so school.classRoomList[choice] gives us a classRoom instance from the slice of classRooms in school. 
+			//takeAttendence and viewAttendenceRecords are method of of type ClassRoom with receiver types of *ClassRoom
+			//this means we can use dot notation to call these methods and they will (but tbh they don't need to in this case) modify the classRoom isntance that
+			//..we called the methods on
 		case 3:
-			//createStudent()
+			choice := school.selectClassRoom()
+			school.classRoomList[choice].takeAttendence()
+			
 		case 4:
+			choice := school.selectClassRoom()
+			school.classRoomList[choice].viewAttendenceRecords()
+			
+		case 5:
 			return
 
 		default:
@@ -111,6 +176,9 @@ func main() {
 		}
 	}
 }
+
+
+
 //prints the classRooms from the classRoom slice in School struct
 func (school *School) selectClassRoom() int {
 	//this loop is similar to foreach in c#. It returns index of each element and every element within a slice or array or map
@@ -146,8 +214,8 @@ func (school *School) selectClassRoom() int {
 
 //%d returns index value, %s is a placeholder for a string val. To explain the list in the foreach loop...
 //school contains a field that is a slice of classRooms. Selection is our index to pick a specific class from the classroom slice. ClassRoom struct has field..
-//that is a slice of students. So ultimate we are saying, iterate throught the student list for our chosen classroom.
-func (school *School) listStudentsInClass(selection int) {
+//that is a slice of students. So ultimate we are saying, iterate throught the student list of our chosen classroom.
+func (school School) listStudentsInClass(selection int) {
 	for index, student := range school.classRoomList[selection].studentList {
 		fmt.Printf("%d. %s %s\n", index+1, student.firstName, student.lastName)
 	}
@@ -161,26 +229,28 @@ func readLine() (string, error) {
 	return strings.TrimSpace(input), err
 }
 
-func createClassRoom() ClassRoom {
-	var class ClassRoom
+//methods vs funcs. When you make a method you list the receiver type. it lets you do structInstance.someMethod() and only lets you use the method on that struct type
+//unless you use a pointer(I think), the method will operate on a copy of the struct instance and will not modify the original struct instance
+//we declared err here because the className is already declared in our ClassRoom struct that has package scope. We can't redeclare classname with := so we 
+//... have to use "=" we still needed to declare err so we just did that separately. 
+func (class *ClassRoom) NameClassRoom() {
 
 	for {
 		fmt.Println("Enter the name for the classroom: ")
-
-		name, err := readLine()
+		var err error
+		class.className, err = readLine()
 		if err != nil {
 			fmt.Println("Error reading input. Please try again.")
 			continue
 		}
 
-		if isValidName(name) {
-			class.className = name
+		if isValidName(class.className) {
 			break
 		} else {
-			fmt.Printf("%v is not a valid name\n", name)
+			fmt.Printf("%v is not a valid name\n", class.className)
 		}
 	}
-	return class
+	return 
 }
 
 func createStudent() Student {
@@ -212,12 +282,20 @@ func createStudent() Student {
 }
 
 func isValidName(name string) bool {
-	for _, r := range name {
-		if !unicode.IsLetter(r) && !unicode.IsSpace(r) && r != '\'' {
-			return false
-		}
-	}
-	return true
+    if len(name) == 0 {
+        return false
+    }
+    // First character must be a letter
+    if !unicode.IsLetter(rune(name[0])) {
+        return false
+    }
+    // Iterate through the rest of the name
+    for _, r := range name {
+        if !unicode.IsLetter(r) && !unicode.IsNumber(r) && !unicode.IsSpace(r) && r != '\'' && r != '.' {
+            return false
+        }
+    }
+    return true
 }
 
 func yesOrNo(inputString string) (bool, error) {
