@@ -286,6 +286,10 @@ func createStudent() Student {
 	return student
 }
 
+/*Previously this func just returned a bool and within my program I would use if bool == false {Print invalid input}. 
+This is not very user friendly because the user doesn't know what they did wrong. I've updated the func to return bool and error
+so that they know how to correct their mistake.*/
+
 func isValidName(name string) (bool, error) {
     if len(name) == 0 {
         return false, fmt.Errorf("Name cannot be empty")
