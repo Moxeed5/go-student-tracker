@@ -97,8 +97,37 @@ func (class ClassRoom) viewAttendenceRecords() {
 
 func (class ClassRoom) viewStudentsInClass() {
 	for _, student := range class.studentList {
-		fmt.Printf("%v %v, ", student.firstName, student.lastName)
+		fmt.Printf("%v %v, \n", student.firstName, student.lastName)
 	}
+}
+
+func (class *ClassRoom) deleteStudent() {
+	for i, student := range class.studentList {
+		fmt.Printf("Press %v to delete student: %v %v, or Q to exit\n", i + 1, student.firstName, student.lastName)
+	}
+	for {
+	userChoice, err := readLine()
+	if err != nil{
+		fmt.Printf("Invalid input, please enter the number for the student you wish to delete.\n")
+		continue
+	}
+	if userChoice == "q" || userChoice == "Q"{
+		break
+	}
+	userChoiceToInt, err := strconv.Atoi(userChoice)
+	if err != nil || userChoiceToInt < 0 || userChoiceToInt > len(class.studentList){
+		fmt.Println("You must enter a valid numerical option.")
+		continue
+	}
+
+	userChoiceToInt = userChoiceToInt - 1
+
+	fmt.Printf("Successfully deleted student: %v %v\n", class.studentList[userChoiceToInt].firstName, class.studentList[userChoiceToInt].lastName)
+
+	class.studentList = append(class.studentList[:userChoiceToInt], class.studentList[userChoiceToInt + 1 :]...)
+	fmt.Printf("%v\n", class.studentList)
+	break
+}
 }
 
 func main() {
@@ -193,6 +222,15 @@ func main() {
 				break
 			}
 			school.classRoomList[choice].viewStudentsInClass()
+
+		case 7:
+			choice:= school.selectClassRoom()
+			if school.classRoomList[choice].studentList == nil {
+				class := school.classRoomList[choice].className
+				fmt.Printf("There are no students currently assigned to class: %v\n", class)
+				break
+			}
+			school.classRoomList[choice].deleteStudent()
 			
 		case 8:
 			return
