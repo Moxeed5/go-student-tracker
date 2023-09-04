@@ -95,6 +95,12 @@ func (class ClassRoom) viewAttendenceRecords() {
 	}
 }
 
+func (class ClassRoom) viewStudentsInClass() {
+	for _, student := range class.studentList {
+		fmt.Printf("%v %v, ", student.firstName, student.lastName)
+	}
+}
+
 func main() {
 	fmt.Println("Welcome to the ClassRoom Manager")
 
@@ -103,7 +109,8 @@ func main() {
 	//for loop and switch statements to manage menu items
 	for {
 		fmt.Println("Please choose from the following: ")
-		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendance by class, 4 to view attendence records, and 5 to exit the program.")
+		fmt.Println("Press 1 to create a new classroom, 2 to add students to a class, 3 take attendance by class, 4 to view attendence records")
+		fmt.Println("5 to view student list for a class, 6 to update student info, 7 to delete a student, and 8 to exit the program.")
 		menuChoiceStr, err := readLine()
 		if err != nil {
 			fmt.Println("Error reading input. Please try again.")
@@ -120,6 +127,7 @@ func main() {
 			fmt.Println("You must create at least one classroom before selecting other options.")
 			continue
 		}
+		
 		switch menuChoice {
 		case 1:
 			// newClass := createClassRoom()
@@ -162,13 +170,31 @@ func main() {
 			//..we called the methods on
 		case 3:
 			choice := school.selectClassRoom()
+			if school.classRoomList[choice].studentList == nil {
+				class := school.classRoomList[choice].className
+				fmt.Printf("There are no students currently assigned to class: %v\n", class)
+				break
+			}
 			school.classRoomList[choice].takeAttendence()
 			
 		case 4:
 			choice := school.selectClassRoom()
+			if school.classRoomList[choice].studentList == nil {
+				class := school.classRoomList[choice].className
+				fmt.Printf("There are no students currently assigned to class: %v\n", class)
+				break
+			}
 			school.classRoomList[choice].viewAttendenceRecords()
-			
 		case 5:
+			choice:= school.selectClassRoom()
+			if school.classRoomList[choice].studentList == nil {
+				class := school.classRoomList[choice].className
+				fmt.Printf("There are no students currently assigned to class: %v\n", class)
+				break
+			}
+			school.classRoomList[choice].viewStudentsInClass()
+			
+		case 8:
 			return
 
 		default:
