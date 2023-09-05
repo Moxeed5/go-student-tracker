@@ -33,6 +33,11 @@ in the moment thoughts so I'll prob need to update this...*/
 It seems like I should put that all into the attendence record struct.
 
 */
+
+var school School
+
+var Students = make(map[int]*Student)
+
 type Student struct {
 	firstName string
 	lastName  string
@@ -130,10 +135,82 @@ func (class *ClassRoom) deleteStudent() {
 }
 }
 
+func (school *School) updateStudent() {
+    if len(Students) == 0 {
+        fmt.Println("No students found.")
+        return
+    }
+
+    for key, student := range Students {
+        fmt.Printf("Select %v to update student %v %v\n", key, student.firstName, student.lastName)
+    }
+
+    selectionStr, err := readLine()
+    if err != nil {
+        fmt.Println("Invalid selection.")
+        return
+    }
+    selectionInt, err := strconv.Atoi(selectionStr)
+    if err != nil {
+        fmt.Println("Invalid input")
+        return
+    }
+
+    // Check if student exists
+    student, exists := Students[selectionInt]
+    if !exists {
+        fmt.Println("Invalid student selection.")
+        return
+    }
+
+    fmt.Printf("Updating %v %v:\n", student.firstName, student.lastName)
+
+    var newFirstName, newLastName string
+    for {
+        fmt.Println("Enter new first name of Student:")
+        tempFirstName, err := readLine()
+        valid, err := isValidName(tempFirstName)
+        if err != nil || !valid {
+            fmt.Println("Invalid first name. Please try again.")
+            continue
+        }
+        newFirstName = tempFirstName
+        break
+    }
+
+    for {
+        fmt.Println("Enter new last name of Student:")
+        tempLastName, err := readLine()
+        valid, err := isValidName(tempLastName)
+        if err != nil || !valid {
+            fmt.Println("Invalid last name. Please try again.")
+            continue
+        }
+        newLastName = tempLastName
+        break
+    }
+
+    Students[selectionInt] = &Student{firstName: newFirstName, lastName: newLastName}
+
+    // Loop through classrooms and update student
+    for i, classRoom := range school.classRoomList {
+        for j, stu := range classRoom.studentList {
+            if stu.firstName == student.firstName && stu.lastName == student.lastName {
+                school.classRoomList[i].studentList[j].firstName = newFirstName
+                school.classRoomList[i].studentList[j].lastName = newLastName
+            }
+        }
+    }
+
+    fmt.Printf("Successfully updated student: %v %v\n", newFirstName, newLastName)
+}
+
+
+
 func main() {
 	fmt.Println("Welcome to the ClassRoom Manager")
 
-	var school School
+	
 
 	//for loop and switch statements to manage menu items
 	for {
@@ -152,7 +229,7 @@ func main() {
 			continue
 		}
 
-		if menuChoice != 1 && school.classRoomList == nil {
+		if menuChoice != 1 && school.classRoomList == nil{
 			fmt.Println("You must create at least one classroom before selecting other options.")
 			continue
 		}
@@ -199,7 +276,7 @@ func main() {
 			//..we called the methods on
 		case 3:
 			choice := school.selectClassRoom()
-			if school.classRoomList[choice].studentList == nil {
+			if school.classRoomList[choice].studentList == nil || len(school.classRoomList[choice].studentList) == 0 {
 				class := school.classRoomList[choice].className
 				fmt.Printf("There are no students currently assigned to class: %v\n", class)
 				break
@@ -208,7 +285,7 @@ func main() {
 			
 		case 4:
 			choice := school.selectClassRoom()
-			if school.classRoomList[choice].studentList == nil {
+			if school.classRoomList[choice].studentList == nil || len(school.classRoomList[choice].studentList) == 0 {
 				class := school.classRoomList[choice].className
 				fmt.Printf("There are no students currently assigned to class: %v\n", class)
 				break
@@ -216,16 +293,19 @@ func main() {
 			school.classRoomList[choice].viewAttendenceRecords()
 		case 5:
 			choice:= school.selectClassRoom()
-			if school.classRoomList[choice].studentList == nil {
+			if school.classRoomList[choice].studentList == nil || len(school.classRoomList[choice].studentList) == 0 {
 				class := school.classRoomList[choice].className
 				fmt.Printf("There are no students currently assigned to class: %v\n", class)
 				break
 			}
 			school.classRoomList[choice].viewStudentsInClass()
+		
+		case 6:
+			school.updateStudent()
 
 		case 7:
 			choice:= school.selectClassRoom()
-			if school.classRoomList[choice].studentList == nil {
+			if school.classRoomList[choice].studentList == nil || len(school.classRoomList[choice].studentList) == 0  {
 				class := school.classRoomList[choice].className
 				fmt.Printf("There are no students currently assigned to class: %v\n", class)
 				break
