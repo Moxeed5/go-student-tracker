@@ -38,6 +38,8 @@ var school School
 
 var Students = make(map[int]*Student)
 
+var studentId int = 0
+
 type Student struct {
 	firstName string
 	lastName  string
@@ -136,6 +138,9 @@ func (class *ClassRoom) deleteStudent() {
 }
 
 func (school *School) updateStudent() {
+
+	//checking to see if there are any students in the map. Every time we create a student, we add the student to their specific classroom student list..
+	//..and also add the student to the map called Students which should hold a complete list of all students in the school.
     if len(Students) == 0 {
         fmt.Println("No students found.")
         return
@@ -156,7 +161,8 @@ func (school *School) updateStudent() {
         return
     }
 
-    // Check if student exists
+    // Check if student exists. Students is the name of our map. When you look up a key in a map, it returns the val and a bool.
+	//so on the left side, we're creating a var to hold the val and a val to hold the bool. Sematically, it makes sense to call the bool exists.
     student, exists := Students[selectionInt]
     if !exists {
         fmt.Println("Invalid student selection.")
@@ -164,6 +170,8 @@ func (school *School) updateStudent() {
     }
 
     fmt.Printf("Updating %v %v:\n", student.firstName, student.lastName)
+
+	//both for loops below are borrowed from createStudent func. The fact that I'm borrowing code means I should extract it into its own func
 
     var newFirstName, newLastName string
     for {
@@ -288,6 +296,11 @@ func main() {
 			if school.classRoomList[choice].studentList == nil || len(school.classRoomList[choice].studentList) == 0 {
 				class := school.classRoomList[choice].className
 				fmt.Printf("There are no students currently assigned to class: %v\n", class)
+				break
+			}
+			if school.classRoomList[choice].classAttendence == nil || len(school.classRoomList[choice].classAttendence) == 0 {
+				class := school.classRoomList[choice].className
+				fmt.Printf("Attendence has not been taken yet in this class: %v\n", class)
 				break
 			}
 			school.classRoomList[choice].viewAttendenceRecords()
@@ -426,6 +439,9 @@ func createStudent() Student {
 		student.lastName = tempLastName
 		break
 	}
+	//adding student to Students map
+	Students[studentId] = &student
+	studentId++
 
 	return student
 }
